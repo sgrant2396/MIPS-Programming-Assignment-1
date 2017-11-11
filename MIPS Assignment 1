@@ -1,0 +1,15 @@
+# MIPS-Programming-Assignment-1
+#Fall 2017 Computer Organization I MIPS Assembly Assignment 1
+# Sean Grant @02753064
+
+.data	#variable declarations follow this line
+
+
+
+.text	#instructions follow this line
+main:
+
+
+
+  li $v0, 10  # system call code for exit = 10
+	syscall     # call operating sys
