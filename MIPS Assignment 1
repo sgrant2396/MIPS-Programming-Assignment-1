@@ -3,13 +3,18 @@
 # Sean Grant @02753064
 
 .data	#variable declarations follow this line
-
+	str:	 #label for the input string
+	.space 8 #declares 8 bytes of space for the input string
+	
 
 
 .text	#instructions follow this line
 main:
-
-
-
-  li $v0, 10  # system call code for exit = 10
-	syscall     # call operating sys
+	li $v0, 8    # system call code for reading an input string = 8	
+	la $a0, str  # loads the string entered into register $a0
+	li $a1, 8    # tells the operating system that 8 bytes were declared for the string
+	syscall	     # calls the operating system
+	
+	
+	li $v0, 10  # system call code for exit = 10
+	syscall     # call operating system
