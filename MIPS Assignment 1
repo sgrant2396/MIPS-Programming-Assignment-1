@@ -15,11 +15,13 @@ main:
 	   li $a1, 9              # tells the operating system that 9 bytes were declared for the string
 	   syscall	          # calls the operating system
 	   add $t3, $a0, $zero    # copy the contents of $a0 to $t3
+	   add $a3, $zero, $zero  # initialize the $a3 register. This acts as a counter 
 
 StartLoop: lb $t2, 0($t3)         # loads each byte of the string into $t2
            beq $t2, 0, endLoop    # if the character we are at is the NULL character, exit the loop
            beq $t2, 10, endLoop   # if the character we are at is the newline character, exit the loop
-           sge $s0, $t2, 48       # if the character we are looking at is '0' or above '0' then $s0 is set to the value 1
+           addi $a3, $a3, 1       # increment the counter that keeps track of the nnumber of characters entered
+	   sge $s0, $t2, 48       # if the character we are looking at is '0' or above '0' then $s0 is set to the value 1
            sle $s1, $t2, 57       # if the character we are looking at is '9' or below '9' then $s1 is set to the value 1
            beq $s0, 1, Test1Condition2 # if $s0 is equal to 1, then the character is greater than or equal to '0'
            j Test2Condition1      # fails the first test, moves on to check the character against the second test 
