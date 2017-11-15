@@ -2,64 +2,117 @@
 #Fall 2017 Computer Organization I MIPS Assembly Assignment 1
 # Sean Grant @02753064
 
-.data	#variable declarations follow this line
+.data
 	str:	 #label for the input string
 	.space 9 #declares 9 bytes of space for the input string (up to 8 characters)
 	str2:    #label for the error string
-	.asciiz "Invalid Hexadecimal Number."
-	
+	.asciiz "Invalid hexadecimal number."
+	decimalValue: .word 0:8
+	finalValue:   .word 0:8
 .text	
-main:
+main: 
 	   li $v0, 8              # system call code for reading an input string = 8	
 	   la $a0, str            # loads the string entered into register $a0
 	   li $a1, 9              # tells the operating system that 9 bytes were declared for the string
 	   syscall	          # calls the operating system
-	   add $t3, $a0, $zero    # copy the contents of $a0 to $t3
-	   add $a3, $zero, $zero  # initialize the $a3 register. This acts as a counter 
+	   add $t3, $a0, $zero    # copy the contents of $a0 to $t3. Used for getting each character
+	   add $t4, $a0, $zero    # copy the contents of $a0 to $t4. Used for counter loop
+	   addi $t7, $zero, 0     # $t7 ===> Index for the two arrays
+	   add $a3, $zero, $zero  # initializing $a3 counter
+	   
+CounterLoop: lb $t5, 0($t4)            # this section counts how many characters are in the string
+             beq $t5, 0, StartLoop     # if the character we are at is the NULL character, exit the loop
+             beq $t5, 10, StartLoop    # if the character we are at is the newline character, exit the loop
+	     addi $a3, $a3, 1          # increment counter
+	     addi $t4, $t4, 1          # increment character address
+	     j CounterLoop
 
 StartLoop: lb $t2, 0($t3)         # loads each byte of the string into $t2
            beq $t2, 0, endLoop    # if the character we are at is the NULL character, exit the loop
-           beq $t2, 10, endLoop   # if the character we are at is the newline character, exit the loop
-           addi $a3, $a3, 1       # increment the counter that keeps track of the nnumber of characters entered
-	   sge $s0, $t2, 48       # if the character we are looking at is '0' or above '0' then $s0 is set to the value 1
+           beq $t2, 10, endLoop   # if the character we are at is the newline character, exit the loop  
+           sge $s0, $t2, 48       # if the character we are looking at is '0' or above '0' then $s0 is set to the value 1
            sle $s1, $t2, 57       # if the character we are looking at is '9' or below '9' then $s1 is set to the value 1
            beq $s0, 1, Test1Condition2 # if $s0 is equal to 1, then the character is greater than or equal to '0'
            j Test2Condition1      # fails the first test, moves on to check the character against the second test 
 
 Test1Condition2: bne $s1, 1, Test2Condition1 # if $s1 was not set, fails the first test. Moves on to check against the second test
-                 j NextChar       # passes the first test, moves on to the next character in the string
+                 addi $t6, $t2, -48          # gets the actual decimal value of the character if its between 0-9
+                 sb $t6, decimalValue($t7)   # stores the value in array
+                 addi $t7, $t7, 1            # increment to the next element in the array        
+                 j NextChar                  # passes the first test, moves on to the next character in the string
 
-Test2Condition1: sge $s2, $t2, 97 # if the character we are looking at is 'a' or above 'a' then $s2 is set to the value 1 
-                 sle $s3, $t2, 102# if the character we are looking at is 'f' or below 'f' then $s3 is set to the value 1         
+Test2Condition1: sge $s2, $t2, 97            # if the character we are looking at is 'a' or above 'a' then $s2 is set to the value 1 
+                 sle $s3, $t2, 102           # if the character we are looking at is 'f' or below 'f' then $s3 is set to the value 1         
                  beq $s2, 1, Test2Condition2 # if $s2 is equal to 1, then the character is greater than or equal to 'a' 
-                 j Test3Condition1# fails the second test, moves on to check the character against the third test
+                 j Test3Condition1           # fails the second test, moves on to check the character against the third test
 
 Test2Condition2: bne $s3, 1, Test3Condition1 # if $s3 was not set, fails the second test. Moves on to check against the third test
-                 j NextChar       # passes the second test, moves on to the next character in the string
+                 addi $t6, $t2, -87          # gets the decimal value of the character if its between a-f
+                 sb $t6, decimalValue($t7)   # stores the value in array
+                 addi $t7, $t7, 1            # increments array index
+                 j NextChar                  # passes the second test, moves on to the next character in the string
 
-Test3Condition1: sge $s4, $t2, 65 # if the character we are looking at is 'A' or above 'A' then $s4 is set to the value 1
-                 sle $s5, $t2, 70 # if the character we are looking at is 'F' or below 'F' then $s5 is set to the value 1   
+Test3Condition1: sge $s4, $t2, 65            # if the character we are looking at is 'A' or above 'A' then $s4 is set to the value 1
+                 sle $s5, $t2, 70            # if the character we are looking at is 'F' or below 'F' then $s5 is set to the value 1   
                  beq $s4, 1, Test3Condition2 # if $s4 is equal to 1, then the character is greater than or equal to 'A'
-                 j printInvalid   # all three tests failed for this character, go to print the error message and exit the loop           
+                 j printInvalid              # all three tests failed for this character, go to print the error message and exit the loop           
 
-Test3Condition2: bne $s5, 1, printInvalid # if $s5 was not set, fails the third test. prints the error message
-                 j NextChar       # otherwise it passes the third test, moves on to the next character        
+Test3Condition2: bne $s5, 1, printInvalid    # if $s5 was not set, fails the third test. prints the error message
+                 addi $t6, $t2, -55          # gets the decimal value of the character if its between A-F
+                 sb $t6, decimalValue($t7)   # stores calue in array
+                 addi $t7, $t7, 1            # increments array index
+                 j NextChar                  # otherwise it passes the third test, moves on to the next character        
 
-NextChar:
-	   addi $t3, $t3, 1   # increments the $rs register in order to read the next byte of the string
+NextChar:  addi $t3, $t3, 1   # increments the $rs register in order to read the next byte of the string
 	   j StartLoop        # jump back to the beginning of the loop
 
-printInvalid:   li $v0, 11    # call code to print a character
-	        la $a0, ' '   # print a space before printing the error message
-	        syscall       # call OS
-                li $v0, 4     # call code to print a string
+printInvalid:   li $v0, 4     # call code to print a string
 	        la $a0, str2  # print error code
 	        syscall	      # call OS
-	        j endCode1    # jump to exit code 
+	        li $v0, 10    # system call code for exit = 10
+	        syscall       # call operating system 
+	        
+endLoop:        add $t9, $zero, $zero        # initialize $t9
+	        addi $t0, $zero, 0           # $t0 is used as the index counter for the array
 
-endLoop: j startConversion    # does not exit the code, jumps to the next section of the code
-
-endCode1: li $v0, 10          # system call code for exit = 10
-	 syscall              # call operating system
-
-startConversion: 
+convertLoop:   beq $t0, $a3, endConvertLoop  # if index equals length of strng, exit the loop
+               addi $s3, $a3, -1             # $s3 = length of string - 1
+               beq $t0, $s3, lastIndex       # if the index is the last element in the string, branch
+               sub $t8, $a3, $t0             # $t8 = length of string - index
+               addi $t8, $t8, -1             # $t8 hold the exponent to the base 16 for this array index
+               addi $t9, $zero, 16           # makes sure the calculation of base 16 to an exonent is correct
+               
+baseSixteen:   beq $t8, 1, endbaseSixteen    # if exponent is 1, exit loop
+               addi $s4, $zero, 16
+               mult $t9, $s4                  # $t9 = 16*16
+               mflo $t9
+               addi $t8, $t8, -1             # decrement exponent
+               j baseSixteen
+               
+endbaseSixteen: lb $t4, decimalValue($t0)    # load decimal value to $t4  
+                mult $t8, $t4                # multiply decimal value by 16^x
+                mflo $t3
+                sb $t3, finalValue($t0)      # store that result at the same index of a different array
+                j next
+                 
+lastIndex:    lb $t5, decimalValue($t0)      # multiplying by 16^0, which is just the same value stored in the first register
+              sb $t5, finalValue($t0)        # stores that same value in the second array      
+              j endConvertLoop
+               
+next:    addi $t0, $t0, 1                    # increment the index                     
+         j convertLoop
+               
+endConvertLoop: addi $s5, $zero, 0           # $s5 holds the sum of all the elements in the second array
+                addi $t0, $zero, 0           # $t0 is used as the index counter for the array
+summation:
+                beq $t0, $a3, printOutput
+                lb $t5, finalValue($t0)
+                add $s5, $s5, $t5            # Add each of the elements in the array
+                addi $t0, $t0, 1             # increment the index                     
+                j summation                  # FINAL RESULT IS IN $s5
+                
+printOutput:    li $v0, 1
+                add $a0, $s5, $zero
+                syscall
+                li $v0, 10    # system call code for exit = 10
+	        syscall       # call operating system
