@@ -8,7 +8,6 @@
 	str2:    #label for the error string
 	.asciiz "Invalid hexadecimal number."
 	decimalValue: .word 0:8
-	finalValue:   .word 0:8
 .text	
 main: 
 	   li $v0, 8              # system call code for reading an input string = 8	
@@ -27,13 +26,13 @@ CounterLoop: lb $t5, 0($t4)            # this section counts how many characters
 	     addi $t4, $t4, 1          # increment character address
 	     j CounterLoop
 
-StartLoop: lb $t2, 0($t3)         # loads each byte of the string into $t2
-           beq $t2, 0, endLoop    # if the character we are at is the NULL character, exit the loop
-           beq $t2, 10, endLoop   # if the character we are at is the newline character, exit the loop  
-           sge $s0, $t2, 48       # if the character we are looking at is '0' or above '0' then $s0 is set to the value 1
-           sle $s1, $t2, 57       # if the character we are looking at is '9' or below '9' then $s1 is set to the value 1
+StartLoop: lb $t2, 0($t3)              # loads each byte of the string into $t2
+           beq $t2, 0, endLoop         # if the character we are at is the NULL character, exit the loop
+           beq $t2, 10, endLoop        # if the character we are at is the newline character, exit the loop  
+           sge $s0, $t2, 48            # if the character we are looking at is '0' or above '0' then $s0 is set to the value 1
+           sle $s1, $t2, 57            # if the character we are looking at is '9' or below '9' then $s1 is set to the value 1
            beq $s0, 1, Test1Condition2 # if $s0 is equal to 1, then the character is greater than or equal to '0'
-           j Test2Condition1      # fails the first test, moves on to check the character against the second test 
+           j Test2Condition1           # fails the first test, moves on to check the character against the second test 
 
 Test1Condition2: bne $s1, 1, Test2Condition1 # if $s1 was not set, fails the first test. Moves on to check against the second test
                  addi $t6, $t2, -48          # gets the actual decimal value of the character if its between 0-9
@@ -72,47 +71,247 @@ printInvalid:   li $v0, 4     # call code to print a string
 	        li $v0, 10    # system call code for exit = 10
 	        syscall       # call operating system 
 	        
-endLoop:        add $t9, $zero, $zero        # initialize $t9
-	        addi $t0, $zero, 0           # $t0 is used as the index counter for the array
+endLoop:        add $t9, $zero, $zero        # initialize $t9 which is the index of the array
+                add $t8, $zero, $zero        # REGISTER HOLDS THE FINAL VALUE
+                beq $a3, 1, oneElement       
+                beq $a3, 2, twoElements      
+                beq $a3, 3, threeElements    
+                beq $a3, 4, fourElements     
+                beq $a3, 5, fiveElements     # branch to different sub functions based on the length of string
+                beq $a3, 6, sixElements
+                beq $a3, 7, sevenElements
+                beq $a3, 8, eightElements
 
-convertLoop:   beq $t0, $a3, endConvertLoop  # if index equals length of strng, exit the loop
-               addi $s3, $a3, -1             # $s3 = length of string - 1
-               beq $t0, $s3, lastIndex       # if the index is the last element in the string, branch
-               sub $t8, $a3, $t0             # $t8 = length of string - index
-               addi $t8, $t8, -1             # $t8 hold the exponent to the base 16 for this array index
-               addi $t9, $zero, 16           # makes sure the calculation of base 16 to an exonent is correct
-               
-baseSixteen:   beq $t8, 1, endbaseSixteen    # if exponent is 1, exit loop
-               addi $s4, $zero, 16
-               mult $t9, $s4                  # $t9 = 16*16
-               mflo $t9
-               addi $t8, $t8, -1             # decrement exponent
-               j baseSixteen
-               
-endbaseSixteen: lb $t4, decimalValue($t0)    # load decimal value to $t4  
-                mult $t8, $t4                # multiply decimal value by 16^x
-                mflo $t3
-                sb $t3, finalValue($t0)      # store that result at the same index of a different array
-                j next
-                 
-lastIndex:    lb $t5, decimalValue($t0)      # multiplying by 16^0, which is just the same value stored in the first register
-              sb $t5, finalValue($t0)        # stores that same value in the second array      
-              j endConvertLoop
-               
-next:    addi $t0, $t0, 1                    # increment the index                     
-         j convertLoop
-               
-endConvertLoop: addi $s5, $zero, 0           # $s5 holds the sum of all the elements in the second array
-                addi $t0, $zero, 0           # $t0 is used as the index counter for the array
-summation:
-                beq $t0, $a3, printOutput
-                lb $t5, finalValue($t0)
-                add $s5, $s5, $t5            # Add each of the elements in the array
-                addi $t0, $t0, 1             # increment the index                     
-                j summation                  # FINAL RESULT IS IN $s5
-                
-printOutput:    li $v0, 1
-                add $a0, $s5, $zero
-                syscall
-                li $v0, 10    # system call code for exit = 10
-	        syscall       # call operating system
+oneElement: lb $t5, decimalValue($t9)        # loads the value from array element
+            add $t8, $t5, $zero              # calculate sum
+            li $v0, 1                        # call code 1 is for printing an integer
+            la $a0, ($t8)                    # prints out the total value after computing the sum
+            syscall                          # calls OS
+            li $v0, 10                       #call code 10 is for exiting the code
+            syscall                          # call to OS
+
+twoElements: add $t9, $zero, $zero
+             lb $t5, decimalValue($t9)      # loads the value from array element
+             addi $t6, $zero, 16            # use this register to multiply by 16
+             multu $t5, $t6                 # multiply value by 16
+             mflo $t8                       # put result in $t8
+             addi $t9, $t9, 1               # increment $t9
+             lb $t5, decimalValue($t9)      # loads the value from array element
+             add $t8, $t8, $t5              # calculate sum
+             li $v0, 1                     
+             la $a0, ($t8)
+             syscall
+             li $v0, 10
+             syscall
+             
+threeElements: add $t9, $zero, $zero
+             lb $t5, decimalValue($t9)      # loads the value from array element
+             addi $t6, $zero, 256           # multiply value by 256 which is in $t6
+             multu $t5, $t6                 # multiply the value by 256
+             mflo $t8                       # store result in $t8 
+             addi $t9, $t9, 1               # increment $t9
+             lb $t5, decimalValue($t9)      # loads the value from array element
+             addi $t6, $zero, 16
+             multu $t5, $t6
+             mflo $t7     
+             add $t8, $t8, $t7              # calculate sum
+             addi $t9, $t9, 1
+             lb $t5, decimalValue($t9)      # loads the value from array element
+             add $t8, $t8, $t5              # calculate sum
+             li $v0, 1
+             la $a0, ($t8)
+             syscall
+             li $v0, 10
+             syscall
+
+fourElements: add $t9, $zero, $zero
+             lb $t5, decimalValue($t9)      # loads the value from array element
+             addi $t6, $zero, 4096          # mulitply corresponding  value by 4096
+             multu $t5, $t6                 # multiply value by 4096
+             mflo $t8                       # store result in $t8
+             addi $t9, $t9, 1               # Increment $t9
+             lb $t5, decimalValue($t9)      # loads the value from array element
+             addi $t6, $zero, 256
+             multu $t5, $t6 
+             mflo $t7
+             add $t8, $t8, $t7              # calculate sum
+             addi $t9, $t9, 1
+             lb $t5, decimalValue($t9)      # loads the value from array element
+             addi $t6, $zero, 16  
+             multu $t5, $t6 
+             mflo $t7   
+             add $t8, $t8, $t7              # calculate sum
+             addi $t9, $t9, 1
+             lb $t5, decimalValue($t9)      # loads the value from array element
+             add $t8, $t8, $t5              # calculate sum
+             li $v0, 1
+             la $a0, ($t8)
+             syscall
+             li $v0, 10
+             syscall
+
+fiveElements: add $t9, $zero, $zero
+             lb $t5, decimalValue($t9)      # loads the value from array element
+             addi $t6, $zero, 65536         # add cooresponding value to 65536
+             multu $t5, $t6                 # carry out the multiplication
+             mflo $t8                       # store result in $t8
+             addi $t9, $t9, 1               # increment $t9
+             lb $t5, decimalValue($t9)      # loads the value from array element
+             addi $t6, $zero, 4096
+             multu $t5, $t6 
+             mflo $t7
+             add $t8, $t8, $t7              # calculate sum
+             addi $t9, $t9, 1
+             lb $t5, decimalValue($t9)      # loads the value from array element
+             addi $t6, $zero, 256  
+             multu $t5, $t6 
+             mflo $t7   
+             add $t8, $t8, $t7              # calculate sum
+             addi $t9, $t9, 1
+             lb $t5, decimalValue($t9)      # loads the value from array element
+             addi $t6, $zero, 16  
+             multu $t5, $t6 
+             mflo $t7   
+             add $t8, $t8, $t7              # calculate sum
+             addi $t9, $t9, 1 
+             lb $t5, decimalValue($t9)      # loads the value from array element    
+             add $t8, $t8, $t5              # calculate sum    
+             li $v0, 1
+             la $a0, ($t8)
+             syscall
+             li $v0, 10
+             syscall
+
+sixElements: add $t9, $zero, $zero
+             lb $t5, decimalValue($t9)      # loads the value from array element
+             addi $t6, $zero, 1048576       # add cooresponding value to 1048576
+             multu $t5, $t6                 # carry out the multiplication
+             mflo $t8                       # store result in $t8
+             addi $t9, $t9, 1               # increment $t9
+             lb $t5, decimalValue($t9)      # loads the value from array element
+             addi $t6, $zero, 65536
+             multu $t5, $t6 
+             mflo $t7
+             add $t8, $t8, $t7              # calculate sum
+             addi $t9, $t9, 1
+             lb $t5, decimalValue($t9)      # loads the value from array element
+             addi $t6, $zero, 4096  
+             multu $t5, $t6 
+             mflo $t7   
+             add $t8, $t8, $t7              # calculate sum
+             addi $t9, $t9, 1
+             lb $t5, decimalValue($t9)      # loads the value from array element
+             addi $t6, $zero, 256  
+             multu $t5, $t6 
+             mflo $t7   
+             add $t8, $t8, $t7              # calculate sum
+             addi $t9, $t9, 1 
+             lb $t5, decimalValue($t9)      # loads the value from array element  
+             addi $t6, $zero, 16  
+             multu $t5, $t6 
+             mflo $t7   
+             add $t8, $t8, $t7              # calculate sum
+             addi $t9, $t9, 1  
+             lb $t5, decimalValue($t9)      # loads the value from array element        
+             add $t8, $t8, $t5              # calculate sum    
+             li $v0, 1
+             la $a0, ($t8)
+             syscall
+             li $v0, 10
+             syscall
+
+
+sevenElements: add $t9, $zero, $zero
+             lb $t5, decimalValue($t9)      # loads the value from array element
+             addi $t6, $zero, 16777216      # add cooresponding value to 16777216
+             multu $t5, $t6                 # carry out the multiplication
+             mflo $t8                       # store result in $t8
+             addi $t9, $t9, 1               # increment $t9
+             lb $t5, decimalValue($t9)      # loads the value from array element
+             addi $t6, $zero, 1048576
+             multu $t5, $t6 
+             mflo $t7
+             add $t8, $t8, $t7              # calculate sum
+             addi $t9, $t9, 1
+             lb $t5, decimalValue($t9)      # loads the value from array element
+             addi $t6, $zero, 65536  
+             multu $t5, $t6 
+             mflo $t7   
+             add $t8, $t8, $t7              # calculate sum
+             addi $t9, $t9, 1
+             lb $t5, decimalValue($t9)      # loads the value from array element
+             addi $t6, $zero, 4096 
+             multu $t5, $t6 
+             mflo $t7   
+             add $t8, $t8, $t7              # calculate sum
+             addi $t9, $t9, 1 
+             lb $t5, decimalValue($t9)      # loads the value from array element  
+             addi $t6, $zero, 256  
+             multu $t5, $t6 
+             mflo $t7   
+             add $t8, $t8, $t7              # calculate sum
+             addi $t9, $t9, 1  
+             lb $t5, decimalValue($t9)      # loads the value from array element 
+             addi $t6, $zero, 16  
+             multu $t5, $t6 
+             mflo $t7   
+             add $t8, $t8, $t7              # calculate sum
+             addi $t9, $t9, 1 
+             lb $t5, decimalValue($t9)       
+             add $t8, $t8, $t5              # calculate sum    
+             li $v0, 1
+             la $a0, ($t8)
+             syscall
+             li $v0, 10
+             syscall
+
+
+eightElements: add $t9, $zero, $zero
+             lb $t5, decimalValue($t9)      # loads the value from array element
+             addi $t6, $zero, 268435456     # add cooresponding value to 268435456
+             multu $t5, $t6                 # carry out the multiplication
+             mflo $t8                       # store result in $t8
+             addi $t9, $t9, 1               # increment $t9
+             lb $t5, decimalValue($t9)      # loads the value from array element
+             addi $t6, $zero, 16777216
+             multu $t5, $t6 
+             mflo $t7
+             add $t8, $t8, $t7              # calculate sum
+             addi $t9, $t9, 1
+             lb $t5, decimalValue($t9)      # loads the value from array element
+             addi $t6, $zero, 1048576  
+             multu $t5, $t6 
+             mflo $t7   
+             add $t8, $t8, $t7              # calculate sum
+             addi $t9, $t9, 1
+             lb $t5, decimalValue($t9)      # loads the value from array element
+             addi $t6, $zero, 65536 
+             multu $t5, $t6 
+             mflo $t7   
+             add $t8, $t8, $t7              # calculate sum
+             addi $t9, $t9, 1 
+             lb $t5, decimalValue($t9)      # loads the value from array element  
+             addi $t6, $zero, 4096  
+             multu $t5, $t6 
+             mflo $t7   
+             add $t8, $t8, $t7              # calculate sum
+             addi $t9, $t9, 1  
+             lb $t5, decimalValue($t9)      # loads the value from array element 
+             addi $t6, $zero, 256  
+             multu $t5, $t6 
+             mflo $t7   
+             add $t8, $t8, $t7              # calculate sum
+             addi $t9, $t9, 1 
+             lb $t5, decimalValue($t9)
+             addi $t6, $zero, 16  
+             multu $t5, $t6 
+             mflo $t7   
+             add $t8, $t8, $t7              # calculate sum
+             addi $t9, $t9, 1   
+             lb $t5, decimalValue($t9)    
+             add $t8, $t8, $t5              # calculate sum    
+             li $v0, 1
+             la $a0, ($t8)
+             syscall
+             li $v0, 10
+             syscall
