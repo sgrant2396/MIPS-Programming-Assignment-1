@@ -84,6 +84,9 @@ endLoop:        add $t9, $zero, $zero        # initialize $t9 which is the index
 
 oneElement: lb $t5, decimalValue($t9)        # loads the value from array element
             add $t8, $t5, $zero              # calculate sum
+            li $v0, 11
+            li $a0, '\n'
+            syscall
             li $v0, 1                        # call code 1 is for printing an integer
             la $a0, ($t8)                    # prints out the total value after computing the sum
             syscall                          # calls OS
@@ -98,6 +101,9 @@ twoElements: add $t9, $zero, $zero
              addi $t9, $t9, 1               # increment $t9
              lb $t5, decimalValue($t9)      # loads the value from array element
              add $t8, $t8, $t5              # calculate sum
+             li $v0, 11
+             li $a0, '\n'
+             syscall
              li $v0, 1                     
              la $a0, ($t8)
              syscall
@@ -118,6 +124,9 @@ threeElements: add $t9, $zero, $zero
              addi $t9, $t9, 1
              lb $t5, decimalValue($t9)      # loads the value from array element
              add $t8, $t8, $t5              # calculate sum
+             li $v0, 11
+             li $a0, '\n'
+             syscall
              li $v0, 1
              la $a0, ($t8)
              syscall
@@ -144,6 +153,9 @@ fourElements: add $t9, $zero, $zero
              addi $t9, $t9, 1
              lb $t5, decimalValue($t9)      # loads the value from array element
              add $t8, $t8, $t5              # calculate sum
+             li $v0, 11
+             li $a0, '\n'
+             syscall
              li $v0, 1
              la $a0, ($t8)
              syscall
@@ -175,7 +187,10 @@ fiveElements: add $t9, $zero, $zero
              add $t8, $t8, $t7              # calculate sum
              addi $t9, $t9, 1 
              lb $t5, decimalValue($t9)      # loads the value from array element    
-             add $t8, $t8, $t5              # calculate sum    
+             add $t8, $t8, $t5              # calculate sum  
+             li $v0, 11
+             li $a0, '\n'
+             syscall  
              li $v0, 1
              la $a0, ($t8)
              syscall
@@ -213,7 +228,10 @@ sixElements: add $t9, $zero, $zero
              add $t8, $t8, $t7              # calculate sum
              addi $t9, $t9, 1  
              lb $t5, decimalValue($t9)      # loads the value from array element        
-             add $t8, $t8, $t5              # calculate sum    
+             add $t8, $t8, $t5              # calculate sum 
+             li $v0, 11
+             li $a0, '\n'
+             syscall   
              li $v0, 1
              la $a0, ($t8)
              syscall
@@ -258,7 +276,10 @@ sevenElements: add $t9, $zero, $zero
              add $t8, $t8, $t7              # calculate sum
              addi $t9, $t9, 1 
              lb $t5, decimalValue($t9)       
-             add $t8, $t8, $t5              # calculate sum    
+             add $t8, $t8, $t5              # calculate sum 
+             li $v0, 11
+             li $a0, '\n'
+             syscall   
              li $v0, 1
              la $a0, ($t8)
              syscall
@@ -309,9 +330,14 @@ eightElements: add $t9, $zero, $zero
              add $t8, $t8, $t7              # calculate sum
              addi $t9, $t9, 1   
              lb $t5, decimalValue($t9)    
-             add $t8, $t8, $t5              # calculate sum    
+             add $t8, $t8, $t5              # calculate sum 
+             li $v0, 11
+             li $a0, '\n'
+             syscall   
              li $v0, 1
              la $a0, ($t8)
              syscall
              li $v0, 10
              syscall
+
+
